@@ -1,0 +1,27 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: npm run build
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-1
+
+      - name: Sync to S3
+        run: aws s3 sync ./dist s3://${{ secrets.AWS_S3_BUCKET }}
