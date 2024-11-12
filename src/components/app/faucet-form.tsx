@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import ReCAPTCHA from "react-google-recaptcha";
 
 import { Button } from "../ui/button";
 import {
@@ -26,7 +27,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { EChoices } from "./types";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const formSchema = z.object({
   address: addressSchema,
@@ -41,22 +42,31 @@ export function FaucetForm() {
       choice: EChoices.ELF,
     },
   });
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string>("");
   const [result, setResult] = useState<z.infer<typeof messageResultSchema>>({
     isSuccess: false,
     code: 0,
     message: "",
   });
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const res = await fetch(
-      `${import.meta.env.FAUCET_BACKEND_URL}/api/${
+      `${import.meta.env.VITE_FAUCET_BACKEND_URL}/api/${
         {
           [EChoices.ELF]: "claim",
           [EChoices.TOKEN]: "claim-seed",
           [EChoices.NFT]: "claim-nft-seed",
         }[values.choice]
-      }?walletAddress=${values.address}`,
-      { method: "POST" }
+      }?walletAddress=${values.address}&recaptchaToken=${captchaToken}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Platform: "FaucetUI",
+        },
+      }
     );
     const json = await res.json();
 
@@ -66,6 +76,21 @@ export function FaucetForm() {
   }
 
   const isSeed = form.watch("choice") !== EChoices.ELF;
+
+  const onReCAPTCHAChange = (token: string | null) => {
+    if (token) {
+      setIsCaptchaVerified(true);
+      setCaptchaToken(token);
+    } else {
+      setIsCaptchaVerified(false);
+    }
+  };
+
+  const resetCaptcha = () => {
+    recaptchaRef && recaptchaRef.current?.reset();
+    setIsCaptchaVerified(false);
+    setCaptchaToken("");
+  };
 
   return (
     <div className="mx-auto md:w-[800px]">
@@ -103,7 +128,10 @@ export function FaucetForm() {
                   <FormControl>
                     <Select
                       value={field.value}
-                      onValueChange={(e) => field.onChange(e as EChoices)}
+                      onValueChange={(e) => {
+                        field.onChange(e as EChoices);
+                        resetCaptcha();
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
@@ -127,7 +155,16 @@ export function FaucetForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <input type="hidden" name="captchaToken" value={captchaToken} />
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={import.meta.env.VITE_GOOGLE_CAPTCA_SIKEY_KEY} // Replace with your reCAPTCHA site key
+              onChange={onReCAPTCHAChange}
+              className="mb-3"
+            />
+            <Button type="submit" disabled={!isCaptchaVerified}>
+              Submit
+            </Button>
             {result.message.length > 0 ? (
               <p
                 aria-live="polite"
