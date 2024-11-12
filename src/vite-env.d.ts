@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly FAUCET_BACKEND_URL: string;
+  readonly VITE_FAUCET_BACKEND_URL: string;
   // more env variables...
 }
 
