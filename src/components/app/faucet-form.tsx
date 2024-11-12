@@ -49,7 +49,7 @@ export function FaucetForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const res = await fetch(
-      `https://faucet.aelf.dev/api/${
+      `${import.meta.env.FAUCET_BACKEND_URL}/api/${
         {
           [EChoices.ELF]: "claim",
           [EChoices.TOKEN]: "claim-seed",
