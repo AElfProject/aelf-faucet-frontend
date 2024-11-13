@@ -35,10 +35,14 @@ const formSchema = z.object({
 });
 
 export function FaucetForm() {
+  // get address from search param
+  const urlParams = new URLSearchParams(window.location.search);
+  const address = urlParams.get("address") || "";
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      address: "",
+      address,
       choice: EChoices.ELF,
     },
   });
