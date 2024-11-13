@@ -158,7 +158,7 @@ export function FaucetForm() {
             <input type="hidden" name="captchaToken" value={captchaToken} />
             <ReCAPTCHA
               ref={recaptchaRef}
-              sitekey={import.meta.env.VITE_GOOGLE_CAPTCA_SIKEY_KEY} // Replace with your reCAPTCHA site key
+              sitekey={import.meta.env.VITE_GOOGLE_CAPTCHA_SITEKEY} // Replace with your reCAPTCHA site key
               onChange={onReCAPTCHAChange}
               className="mb-3"
             />
