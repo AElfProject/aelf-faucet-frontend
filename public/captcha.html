@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>reCAPTCHA</title>
+    <script
+      src="https://www.google.com/recaptcha/api.js"
+      async
+      defer
+      onerror="onLoadError()"
+    ></script>
+  </head>
+  <body>
+    <div
+      class="g-recaptcha"
+      data-sitekey="6LfkxmQqAAAAAMNY2KJjJiXGRacgy3YcihzPr8k5"
+      data-callback="onRecaptchaSuccess"
+    ></div>
+    <script>
+      function onRecaptchaSuccess(token) {
+        window.parent.postMessage({ recaptchaToken: token }, "*");
+      }
+      function onLoadError() {
+        window.parent.postMessage({ error: "Recaptcha failed to load." }, "*");
+      }
+    </script>
+  </body>
+</html>
